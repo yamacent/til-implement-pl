@@ -1,3 +1,4 @@
+const FALSE = { type: 'bool', value: false }
 const PRECEDENCE = {
   "=": 1,
   "||": 2,
@@ -8,19 +9,51 @@ const PRECEDENCE = {
 }
 
 function parse(input) {
-  const FALSE = { type: 'bool', value: false }
-  function unexpected() {}
   function isPunc(ch) {
     const tok = input.peek()
     return tok && tok.type === 'punc' && (!ch || tok.value === ch) && tok
   }
-  function isOp() {}
-  function isKw(kw) {}
+  function isKw(kw) {
+    const tok = input.peek()
+    return tok && tok.type === 'kw' && (!kw || tok.value === kw) && tok
+  }
+  function isOp(op) {
+    const tok = input.peek()
+    return tok && tok.type === 'op' && (!op || tok.value === op) && tok
+  }
   function skipPunc(ch) {
     if (isPunc(ch)) input.next()
     else input.croak(`Expecting punctuation: "${ch}"`)
   }
-  function skipKw(kw) {}
+  function skipKw(kw) {
+    if (isKw(kw)) input.next()
+    else input.croak(`Expecting keyword: "${kw}"`)
+  }
+  function skipOp(op) {
+    if (isOp(op)) input.next()
+    else input.croak(`Expecting operator: "${op}"`)
+  }
+  function unexpected() {
+    input.croak('Unexpected token: ' + JSON.stringify(input.peek()))
+  }
+  function maybeBinary(left, myPrec) {
+    const tok = isOp()
+    if (tok) {
+      const hisPrec = PRECEDENCE[tok.value]
+      if (hisPrec > myPrec) {
+        input.next()
+        const right = maybeBinary(parseAtom(), hisPrec)
+        const binary = {
+          type: tok.value === '=' ? 'assign' : 'binary',
+          operator: tok.value,
+          left,
+          right
+        }
+        return maybeBinary(binary, myPrec)
+      }
+    }
+    return left
+  }
   function delimited(start, stop, separator, parser) {
     const a = []
     let first = true
@@ -38,11 +71,17 @@ function parse(input) {
     skipPunc(stop)
     return a
   }
-
-  function parseBool() {}
-  function parseVarname() {}
-  function parseExpression() {
-    return maybeCall(() => maybeBinary(parseAtom(), 0))
+  function parseCall(func) {
+    return {
+      type: 'call',
+      func,
+      args: delimited('(', ')', ',', parseExpression)
+    }
+  }
+  function parseVarname() {
+    const name = input.next()
+    if (name.type !== 'var') input.croak('Expecting variable name')
+    return name.value
   }
   function parseIf() {
     skipKw('if')
@@ -63,48 +102,15 @@ function parse(input) {
       body: parseExpression()
     }
   }
-  function parseProg() {
-    const prog = delimited('{', '}', ';', parseExpression)
-    if (prog.length === 0) return FALSE
-    if (prog.length === 1) return prog[0]
-    return { type: 'prog', prog }
-  }
-  function parseToplevel() {
-    const prog = []
-    while (!input.eof()) {
-      prog.push(parseExpression())
-      if (!input.eof()) skipPunc(';')
-    }
-    return { type: 'prog', prog }
-  }
-  function parseCall(func) {
+  function parseBool() {
     return {
-      type: 'call',
-      func,
-      args: delimited('(', ')', ',', parseExpression)
+      type: 'bool',
+      value: input.next().value === 'true'
     }
   }
   function maybeCall(expr) {
     expr = expr()
     return isPunc('(') ? parseCall(expr) : expr
-  }
-  function maybeBinary(left, myPrec) {
-    const tok = isOp()
-    if (tok) {
-      const hisPrec = PRECEDENCE[tok.value]
-      if (hisPrec > myPrec) {
-        input.next()
-        const right = maybeBinary(parseAtom(), hisPrec)
-        const binary = {
-          type: tok.value === '=' ? 'assign' : 'binary',
-          operator: tok.value,
-          left,
-          right
-        }
-        return maybeBinary(binary, myPrec)
-      }
-    }
-    return left
   }
   function parseAtom() {
     return maybeCall(() => {
@@ -126,5 +132,22 @@ function parse(input) {
       unexpected()
     })
   }
-  return parseToplevel
+  function parseToplevel() {
+    const prog = []
+    while (!input.eof()) {
+      prog.push(parseExpression())
+      if (!input.eof()) skipPunc(';')
+    }
+    return { type: 'prog', prog }
+  }
+  function parseProg() {
+    const prog = delimited('{', '}', ';', parseExpression)
+    if (prog.length === 0) return FALSE
+    if (prog.length === 1) return prog[0]
+    return { type: 'prog', prog }
+  }
+  function parseExpression() {
+    return maybeCall(() => maybeBinary(parseAtom(), 0))
+  }
+  return parseToplevel()
 }
