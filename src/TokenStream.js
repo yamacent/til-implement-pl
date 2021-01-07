@@ -8,7 +8,7 @@ const isOpChar = ch => '+-*/%=&|<>!'.indexOf(ch) >= 0
 const isPunc = ch => ',;(){}[]'.indexOf(ch) >= 0
 const isWhitespace = ch => ' \t\n'.indexOf(ch) >= 0
 
-function TokenStream(input) {
+module.exports = function TokenStream(input) {
   let current = null
   function readWhile(predicate) {
     let str = ''
@@ -17,7 +17,7 @@ function TokenStream(input) {
   }
   function readNumber() {
     let hasDot = false
-    const number = this.readWhile(ch => {
+    const number = readWhile(ch => {
       if (ch === '.') {
         if (hasDot) return false
         hasDot = true

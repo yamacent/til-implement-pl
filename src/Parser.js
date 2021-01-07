@@ -8,7 +8,7 @@ const PRECEDENCE = {
   "*": 20, "/": 20, "%": 20,
 }
 
-function parse(input) {
+module.exports = function parse(input) {
   function isPunc(ch) {
     const tok = input.peek()
     return tok && tok.type === 'punc' && (!ch || tok.value === ch) && tok
