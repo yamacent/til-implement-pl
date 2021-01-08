@@ -1,7 +1,7 @@
 const InputStream = require('./InputStream')
 const TokenStream = require('./TokenStream')
-const parse = require('./Parser')
-const Environment = require('./Envinronment')
+const parse = require('./parse')
+const Environment = require('./Environment')
 const evaluate = require('./evaluate')
 
 const code = `
