@@ -18,7 +18,7 @@ module.exports = function InputStream(input) {
   function eof() {
     return peek() === ''
   }
-  function croak() {
+  function croak(msg) {
     throw new Error(`${msg} (${line}:${col})`)
   }
   return {
