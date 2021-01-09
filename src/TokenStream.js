@@ -34,8 +34,9 @@ module.exports = function TokenStream(input) {
   function readEscaped(end) {
     let escaped = false
     let str = ''
+    input.next()
     while (!input.eof()) {
-      let ch = input.next()
+      const ch = input.next()
       if (escaped) {
         str += ch
         escaped = false
