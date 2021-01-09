@@ -1,20 +1,14 @@
+const fs = require('fs')
 const InputStream = require('./InputStream')
 const TokenStream = require('./TokenStream')
 const parse = require('./parse')
-const Environment = require('./Environment')
+const globalEnv = require('./globalEnv')
 const evaluate = require('./evaluate')
 
-const code = `
-  sum = lambda(x, y) x + y;
-  foo = 42;
-  bar = 24;
-  print(sum(foo, sum(bar, bar)));
-`
+const filename = process.argv[2]
 
-const ast = parse(TokenStream(InputStream(code)))
-
-const globalEnv = new Environment()
-
-globalEnv.def('print', txt => console.log(txt))
-
-evaluate(ast, globalEnv)
+fs.readFile(filename, 'utf8', (err, code) => {
+  if (err) throw err
+  const ast = parse(TokenStream(InputStream(code)));
+  evaluate(ast, globalEnv)
+})

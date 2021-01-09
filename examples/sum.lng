@@ -1,0 +1,4 @@
+sum = lambda(x, y) x + y;
+foo = 42;
+bar = 24;
+println(sum(foo, sum(bar, bar)));
