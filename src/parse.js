@@ -87,7 +87,7 @@ module.exports = function parse(input) {
     skipKw('if')
     const cond = parseExpression()
     if (!isPunc('{')) skipKw('then')
-    const then = parseExpression
+    const then = parseExpression()
     const ret = { type: 'if', cond, then }
     if (isKw('else')) {
       input.next()
