@@ -1,0 +1,23 @@
+cons = lambda(a, b) lambda(f) f(a, b);
+car = lambda(cell) cell(lambda(a, b) a);
+cdr = lambda(cell) cell(lambda(a, b) b);
+NIL = lambda(f) f(NIL, NIL);
+
+x = cons(1, cons(2, cons(3, cons(4, cons(5, NIL)))));
+println(car(x));
+println(car(cdr(x)));
+println(car(cdr(cdr(x))));
+println(car(cdr(cdr(cdr(x)))));
+println(car(cdr(cdr(cdr(cdr(x))))));
+
+foreach = lambda(list, f)
+  if list != NIL {
+    f(car(list));
+    foreach(cdr(list), f);
+  };
+foreach(x, println);
+
+range = lambda(a, b)
+  if a <= b then cons(a, range(a + 1, b))
+            else NIL;
+foreach(range(1, 8), lambda(x) println(x * x))
